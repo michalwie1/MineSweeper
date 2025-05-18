@@ -1,0 +1,10 @@
+table{
+margin: 0 auto;
+padding: 80px;
+font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+font-size: 25px;
+}
+
+table td, tr {
+    padding: 20px;
+}
