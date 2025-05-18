@@ -6,12 +6,14 @@ function renderBoard(board) {
     for (var j = 0; j < board[0].length; j++) {
       //   console.log(board[i][j].isMine)
 
-      var cellMinesAround = board[i][j].minesAroundCount
-      console.log('cellMinesAround', cellMinesAround)
-      var cellObj = board[i][j].isMine ? BOMB : cellMinesAround
+      //   var cellMinesAround = board[i][j].minesAroundCount
 
-      //    cellObj = board[i][j] ? BOMB : EMPTY
-      //   const cell = cellObj
+      var cellMinesAround =
+        board[i][j].minesAroundCount === 0
+          ? EMPTY
+          : board[i][j].minesAroundCount
+      //   console.log('cellMinesAround', cellMinesAround)
+      var cellObj = board[i][j].isMine ? BOMB : cellMinesAround
       const className = `cell-${i}-${j}`
 
       strHTML += `<td class="${className}">${cellObj}</td>`

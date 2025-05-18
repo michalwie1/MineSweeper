@@ -1,8 +1,5 @@
-const EMPTY = 'null'
+const EMPTY = '-'
 const BOMB = '💣'
-const ONE = 1
-const TWO = 2
-const THREE = 3
 
 const gBoard = {
   minesAroundCount: 4,
@@ -50,21 +47,24 @@ function buildBoard() {
       }
     }
   }
+  addRandomMines(board)
 
+  return board
+}
+
+function addRandomMines(board) {
+  const size = gLevel.SIZE
   var count = 0
-  //SHOULD VERIFY IT"S NOT THE SAME LOCATION!!!!!
-  while (count < gLevel.MINES) {
-    console.log('count', count)
-    // console.log('count',count )
 
+  while (count < gLevel.MINES) {
     var randRow = getRandomInt(0, size - 1)
     var randCol = getRandomInt(0, size - 1)
-    console.log(randRow, randCol)
 
+    if (board[randRow][randCol].isMine) continue
     board[randRow][randCol].isMine = true
+
     count++
   }
-  return board
 }
 
 function checkMinesNegs(board) {
@@ -84,13 +84,13 @@ function setMinesNegsCount(board, row, col) {
       if (j < 0 || j >= board[0].length) continue
       if (i === row && j === col) continue
       if (board[i][j].isMine) {
-        console.log(row, col, board[i][j].isMine)
+        // console.log(row, col, board[i][j].isMine)
         minesCount++
       }
     }
   }
   board[row][col].minesAroundCount = minesCount
-  console.log('hi', minesCount)
+  //   console.log('minesCount', minesCount)
 }
 
 function onCellClicked(elCell, i, j) {
