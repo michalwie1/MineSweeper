@@ -1,16 +1,22 @@
 const EMPTY = '-'
 const BOMB = '💣'
+const SMILEY = '😀'
+const SAD = '☹️'
+const SURPRISED = '😮'
+const WIN = '😎'
 
-const gBoard = {
-  minesAroundCount: 4,
-  isRevealed: false,
-  isMine: false,
-  isMarked: false,
-}
+var gBoard
+
+// Support 3 levels of the game
+// o Beginner (4 * 4 with 2 MINES)
+// o Medium (8 * 8 with 14 MINES)
+// o Expert (12 * 12 with 32 MINES)
 
 const gCurrPos = 9
+var gLives
 
 gLevel = {
+  //should support more levels
   SIZE: 4,
   MINES: 2,
 }
@@ -19,15 +25,19 @@ gGame = {
   isOn: false,
   revealedCount: 0,
   markedCount: 0,
-  secsPassed: 0,
+  secsPassed: 0, //should add
 }
 
 function onInit() {
+  gGame.revealedCount = 0
+  gLives = 3
   gGame.isOn = true
-  const board = buildBoard()
-  console.table(board)
-  checkMinesNegs(board)
-  renderBoard(board)
+  gBoard = buildBoard()
+  console.table(gBoard)
+  //   onFirstClick(gBoard)
+  //   checkMinesNegs(gBoard)
+  renderEmptyBoard(gBoard)
+  //   renderBoard(gBoard)
   //   setMinesNegsCount(board, 2, 2)
 }
 
@@ -47,9 +57,15 @@ function buildBoard() {
       }
     }
   }
-  addRandomMines(board)
+  //   addRandomMines(board)
 
   return board
+}
+
+function onFirstClick(board) {
+  addRandomMines(board)
+  checkMinesNegs(board)
+  renderBoard(board)
 }
 
 function addRandomMines(board) {
@@ -93,10 +109,99 @@ function setMinesNegsCount(board, row, col) {
   //   console.log('minesCount', minesCount)
 }
 
-function onCellClicked(elCell, i, j) {
-  //   console.log('hi')
+document.addEventListener('contextmenu', function (ev) {
+  ev.preventDefault()
+})
+
+function onCellMouseClick(event, elCell) {
+  const elFlag = elCell.querySelector('.flag')
+
+  if (elCell.querySelector('.revealed')) {
+    console.log('can only be clicked once')
+  }
+
+  if (event.button === 0) {
+    console.log('Left click!')
+    onLeftClick(elCell)
+  } else if (event.button === 2) {
+    console.log('Right click!')
+    if (elFlag.style.display === 'block') {
+      elFlag.style.display = 'none'
+    } else {
+      elFlag.style.display = 'block'
+      gGame.markedCount++
+    }
+  }
 }
 
-function onCellMarked(elCell, i, j) {}
-function checkGameOver() {}
+function onLeftClick(elCell) {
+  //SHOULD CHECK WHY FIRST CLICK IS DOING PROBLEM
+  //CAN REMOVE I,J FROM FUNCTION?
+  if (elCell.querySelector('.revealed')) {
+    console.log('can only be clicked once')
+  } else {
+    gGame.revealedCount++
+    console.log('revealedCount', gGame.revealedCount)
+
+    const elFlag = elCell.querySelector('.flag')
+    elFlag.style.display = 'none'
+    // console.log(elCell)
+    returnCellPos(elCell.className) //NEEDED????
+
+    const elSmiley = document.querySelector('.smiley')
+    // console.log(elSmiley)
+    elSmiley.innerText = SURPRISED
+
+    const cellHidden = elCell.querySelector('.hidden')
+    cellHidden.classList.add('revealed')
+    setTimeout(() => {
+      elSmiley.innerText = SMILEY
+    }, 150)
+
+    if (gGame.revealedCount === 1) {
+      console.log('first click!')
+      onFirstClick(gBoard)
+    }
+
+    if (elCell.innerText === BOMB) {
+      console.log('its a bomb!!!')
+      gLives--
+      console.log('gLives', gLives)
+    }
+  }
+}
+
+function returnCellPos(cellClass) {
+  //cell-0-0
+  var classArr = cellClass.split('-')
+  var cellPos = { i: classArr[1], j: classArr[2] }
+  console.log(cellPos)
+}
+
+function onSmileyClicked(elSmiley) {
+  if (elSmiley.innerText === SMILEY) {
+  }
+  if (elSmiley.innerText === SAD) {
+    console.log('should do restart')
+  }
+  //   if (elSmiley.innerText === SURPRISED) {
+  //   }
+}
+
+function checkGameOver() {
+  const elSmiley = document.querySelector('.smiley')
+
+  //if game over: (stepped on a mine and have no life left)
+
+  elSmiley.innerText = SAD
+
+  //if wins: All the mines are flagged, and all the other cells are revealed (User's victory)
+  elSmiley.innerText = WIN
+}
+
 function expandReveal(board, elCell, i, j) {}
+function onCellMarked(elCell, i, j) {}
+
+//SHOULD ADD SOMEWHERE: IF A MINE CLICKED && NO LIFE >> ALL MINES REVEALED
+
+//SHOULD ADD SOMEWHERE:  Cell that has no mines in his neighbors – also expand to reveal it's 1st degree neighbors
