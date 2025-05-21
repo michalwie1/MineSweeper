@@ -7,16 +7,11 @@ const WIN = '😎'
 
 var gBoard
 
-// Support 3 levels of the game
-// o Beginner (4 * 4 with 2 MINES)
-// o Medium (8 * 8 with 14 MINES)
-// o Expert (12 * 12 with 32 MINES)
-
-const gCurrPos = 9
 var gLives
+var gTimerInterval
+var gStartTime
 
 gLevel = {
-  //should support more levels
   SIZE: 4,
   MINES: 2,
 }
@@ -25,7 +20,7 @@ gGame = {
   isOn: false,
   revealedCount: 0,
   markedCount: 0,
-  secsPassed: 0, //should add
+  secsPassed: 0,
 }
 
 function onInit() {
@@ -39,6 +34,7 @@ function onInit() {
   renderEmptyBoard(gBoard)
   //   renderBoard(gBoard)
   //   setMinesNegsCount(board, 2, 2)
+  //   startTimer() // TURN ON!!!
 }
 
 function buildBoard() {
@@ -109,11 +105,7 @@ function setMinesNegsCount(board, row, col) {
   //   console.log('minesCount', minesCount)
 }
 
-document.addEventListener('contextmenu', function (ev) {
-  ev.preventDefault()
-})
-
-function onCellMouseClick(event, elCell) {
+function onCellClick(event, elCell) {
   const elFlag = elCell.querySelector('.flag')
 
   if (elCell.querySelector('.revealed')) {
@@ -125,6 +117,7 @@ function onCellMouseClick(event, elCell) {
     onLeftClick(elCell)
   } else if (event.button === 2) {
     console.log('Right click!')
+    onCellMarked(event, elCell)
     if (elFlag.style.display === 'block') {
       elFlag.style.display = 'none'
     } else {
@@ -136,46 +129,47 @@ function onCellMouseClick(event, elCell) {
 
 function onLeftClick(elCell) {
   //SHOULD CHECK WHY FIRST CLICK IS DOING PROBLEM
-  //CAN REMOVE I,J FROM FUNCTION?
+  const cellPos = returnCellPos(elCell.className)
+
+  //bomb click - game over
+  if (!gGame.isOn) return
   if (elCell.querySelector('.revealed')) {
     console.log('can only be clicked once')
   } else {
+    //update MODEL
     gGame.revealedCount++
-    console.log('revealedCount', gGame.revealedCount)
+    gBoard[cellPos.i][cellPos.j].isRevealed = true
 
+    //remove flag
     const elFlag = elCell.querySelector('.flag')
     elFlag.style.display = 'none'
-    // console.log(elCell)
-    returnCellPos(elCell.className) //NEEDED????
 
-    const elSmiley = document.querySelector('.smiley')
-    // console.log(elSmiley)
-    elSmiley.innerText = SURPRISED
-
+    //reveal cell
     const cellHidden = elCell.querySelector('.hidden')
     cellHidden.classList.add('revealed')
+
+    //surprised while clicking
+    const elSmiley = document.querySelector('.smiley')
+    elSmiley.innerText = SURPRISED
+    // return smiley emoji
     setTimeout(() => {
       elSmiley.innerText = SMILEY
     }, 150)
 
+    //first click - no mine
     if (gGame.revealedCount === 1) {
       console.log('first click!')
       onFirstClick(gBoard)
     }
-
     if (elCell.innerText === BOMB) {
-      console.log('its a bomb!!!')
-      gLives--
-      console.log('gLives', gLives)
+      checkGameOver()
+      //   console.log('its a bomb!!!')
+      //   gLives--
+    }
+    if (elCell.innerText === EMPTY) {
+      expandReveal(elCell)
     }
   }
-}
-
-function returnCellPos(cellClass) {
-  //cell-0-0
-  var classArr = cellClass.split('-')
-  var cellPos = { i: classArr[1], j: classArr[2] }
-  console.log(cellPos)
 }
 
 function onSmileyClicked(elSmiley) {
@@ -189,19 +183,70 @@ function onSmileyClicked(elSmiley) {
 }
 
 function checkGameOver() {
-  const elSmiley = document.querySelector('.smiley')
-
   //if game over: (stepped on a mine and have no life left)
-
+  stopTimer()
+  gGame.isOn = false
+  const elSmiley = document.querySelector('.smiley')
   elSmiley.innerText = SAD
+  console.log(elSmiley.innerText) //CHECK
+
+  for (var i = 0; i < gBoard.length; i++) {
+    for (var j = 0; j < gBoard[0].length; j++) {
+      //GAME OVER:
+      if (gBoard[i][j].isMine) {
+        const cellImg = document.querySelector(`.cell-${i}-${j} img`)
+        cellImg.classList.add('revealed')
+      }
+
+      //WIN: - should check!!!!
+      const cellHidden = document.querySelector(`.cell-${i}-${j}`)
+      console.log('test', cellHidden)
+      const elFlag = document.querySelector('.flag')
+
+      if (cellHidden.innerText === BOMB && elFlag.style.display === 'block') {
+        // console.log('you won!!!')
+      }
+    }
+  }
 
   //if wins: All the mines are flagged, and all the other cells are revealed (User's victory)
-  elSmiley.innerText = WIN
+
+  //     <td onmousedown="onCellClick(event,this)" class="cell-0-3">-
+  //   <img class="hidden" src="img/grey-cover.jpg">
+  //   <p class="flag" style="display: block;">⚑</p>
+  //   </td>
+  //   elSmiley.innerText = WIN
 }
 
-function expandReveal(board, elCell, i, j) {}
-function onCellMarked(elCell, i, j) {}
+function expandReveal(elCell) {
+  console.log('trying to reveal2')
+  const currPos = returnCellPos(elCell.className)
 
-//SHOULD ADD SOMEWHERE: IF A MINE CLICKED && NO LIFE >> ALL MINES REVEALED
+  const row = currPos.i
+  const col = currPos.j
+  //negs loop:
+  for (var i = row - 1; i <= row + 1; i++) {
+    if (i < 0 || i >= gBoard.length) continue
+    for (var j = col - 1; j <= col + 1; j++) {
+      if (j < 0 || j >= gBoard[0].length) continue
+      if (i === row && j === col) continue
 
-//SHOULD ADD SOMEWHERE:  Cell that has no mines in his neighbors – also expand to reveal it's 1st degree neighbors
+      //reveal negs empty cells:
+      const cellHidden = document.querySelector(`.cell-${i}-${j}`)
+      const cellImg = document.querySelector(`.cell-${i}-${j} img`)
+      if (cellHidden.innerText === EMPTY) {
+        cellImg.classList.add('revealed')
+      }
+    }
+  }
+}
+
+function onCellMarked(event, elCell) {
+  elCell.addEventListener('contextmenu', function (event) {
+    event.preventDefault()
+  })
+}
+
+//SHOULD ADD: IF A MINE CLICKED && NO LIFE >> ALL MINES REVEALED
+
+//SHOULD ADD: second degree neighbors
