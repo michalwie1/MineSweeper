@@ -1,5 +1,3 @@
-
-
 const EMPTY = ''
 const BOMB = '💣'
 const HAPPY = '😀'
@@ -8,7 +6,9 @@ const SURPRISED = '😮'
 const WIN = '😎'
 
 var gBoard
-// var gLives
+var gLive
+var gIsHint
+var gSafe
 var gTimerInterval
 var gStartTime
 
@@ -26,15 +26,29 @@ gGame = {
 
 function onInit() {
   gGame.revealedCount = 0
-  gLives = 3
+  gLive = 3
+   gIsHint = false
+ gSafe = 3
   gGame.isOn = true
   gBoard = buildBoard()
   console.table(gBoard)
   renderEmptyBoard(gBoard)
-  startTimer() // TURN ON!!!
+  startTimer()
+
+  //ensure black lamps
+  const elHint = document.querySelectorAll('.hint')
+  for (var i = 0; i < elHint.length; i++) {
+    elHint[i].src = 'img/black-lamp.png'
+  }
 
   const elSmiley = document.querySelector('.smiley')
   elSmiley.innerText = HAPPY
+
+  const elSafe = document.querySelector('.safe p')
+  elSafe.innerText = `${gSafe} clicks available`
+
+  const elLife = document.querySelector('.life')
+  elLife.innerText = `${gLive} clicks available`
 }
 
 function buildBoard() {
@@ -69,8 +83,8 @@ console.log(`cellPos.i: ${cellPos.i}, cellPos.j: ${cellPos.j}`)
   var count = 0
 
   while (count < gLevel.MINES) {
-    var randRow = getRandomInt(0, size - 1).toString()
-    var randCol = getRandomInt(0, size - 1).toString()
+    var randRow = getRandomInt(0, size)
+    var randCol = getRandomInt(0, size)
 
     if ((randRow !== cellPos.i || randCol !== cellPos.j) && !board[randRow][randCol].isMine) {
   board[randRow][randCol].isMine = true
@@ -109,7 +123,7 @@ function setMinesNebsCount(board, row, col) {
 function onCellClick(event, elCell) {
   const elFlag = elCell.querySelector('.flag')
 
-  if (elCell.querySelector('.revealed')) return
+  if (elCell.querySelector('.revealed') && elCell.innerText !== BOMB) return
 
   if (event.button === 0) {
     console.log('Left click!')
@@ -155,17 +169,48 @@ function onLeftClick(elCell) {
 
   //reveal cell
   const cellHidden = elCell.querySelector('.hidden')
+  cellHidden.classList.remove('hidden')
   cellHidden.classList.add('revealed')
 
   //surprised while clicking
   const elSmiley = document.querySelector('.smiley')
   elSmiley.innerText = SURPRISED
 
-  //BOMB: game over + restart
-  if (elCell.innerText === BOMB) {
+  //BOMB & no life: game over + restart
+if (elCell.innerText === BOMB && gLive === 0) {
+   elSmiley.innerText = SAD
+  checkGameOver()
+}
+
+  //BOMB: if clicked on a bomb and more life left
+  else if (elCell.innerText === BOMB && gLive > 0 ) {
     elSmiley.innerText = SAD
-    checkGameOver()
-    //   gLives--
+  setTimeout(() => {
+      elSmiley.innerText = HAPPY
+    }, 1000)
+    gLive--
+    
+    //unrevealed cell
+        setTimeout(() => {
+            if (gLive > 0) {
+       cellHidden.classList.remove('revealed')
+  cellHidden.classList.add('hidden')
+            }
+    }, 1000)
+
+    //change the update lives in the DOM
+      const elLife = document.querySelector('.life')
+      if(gLive>1){
+        elLife.innerText = `${gLive} LIVES LEFT`
+      }  else if (gLive === 1){
+        elLife.innerText = `${gLive} LIFE LEFT`
+      } else if (gLive  === 0){
+        elLife.innerText = `NO LIVES LEFT`
+      }
+        
+       if (gLive === 0) {
+        checkGameOver()
+       }
   }
 
   // return happy emoji after surprised
@@ -179,10 +224,16 @@ function onLeftClick(elCell) {
   if (elCell.innerText === EMPTY) {
     expandReveal(elCell)
   }
+
+  //hint
+  if(gIsHint)  {
+    hintExpandNebs(elCell)
+  }
 }
 
 function onSmileyClicked(elSmiley) {
   if (elSmiley.innerText === HAPPY) {
+    onInit()
   }
   //restart
   if (elSmiley.innerText === SAD) {
@@ -211,12 +262,13 @@ function checkGameOver() {
         //expand mines:
         const cellImg = document.querySelector(`.cell-${i}-${j} img`)
         cellImg.classList.add('revealed')
+        cellImg.classList.remove('hidden')
         isGameOver = true
             }
   }
   }
 
-  if (isGameOver){
+  if (isGameOver && gLive === 0){
         console.log('GAME OVER')
         stopTimer()
         gGame.isOn = false
@@ -246,6 +298,7 @@ function checkVictory() {
 }
 
 function expandReveal(elCell) {
+
   const currPos = returnCellPos(elCell.className)
 
   const row = currPos.i
@@ -275,6 +328,10 @@ function expandReveal(elCell) {
           elFlag.style.display = 'none'
         }
       }
+
+      //expand all empty cells around?
+      // if (neighborCell.minesAroundCount === 0) expandReveal(elCell)
+      
     }
   }
 
@@ -283,9 +340,103 @@ function expandReveal(elCell) {
   }
 }
 
+function hintExpandNebs(elCell) {
+  const currPos = returnCellPos(elCell.className)
+
+  const row = currPos.i
+  const col = currPos.j
+  
+  console.log(row, col)
+  
+  //nebs loop:
+  for (var i = row - 1; i <= row + 1; i++) {
+    if (i < 0 || i >= gBoard.length) continue
+    for (var j = col - 1; j <= col + 1; j++) {
+      if (j < 0 || j >= gBoard[0].length) continue
+      if (i === row && j === col) continue
+
+       const elNeighbor = document.querySelector(`.cell-${i}-${j} img`)
+       if (elNeighbor.querySelector('.revealed')) return
+       elNeighbor.classList.remove('hidden')
+       elNeighbor.classList.add('revealed')
+      setTimeout(() => {
+      console.log('now!')
+       elNeighbor.classList.remove('revealed')
+  elNeighbor.classList.add('hidden')
+    }, 1500)
+
+    }
+  }
+
+ gIsHint = false
+}
+
+function onHintClicked(elHint){
+  elHint.src = 'img/light-lamp.png'
+
+gIsHint = true
+}
+
+
+function onSafeClicked(elSafe){
+  if (gSafe === 0) return
+  const size = gLevel.SIZE
+    const randRow = getRandomInt(0, size)
+    const randCol = getRandomInt(0, size)
+
+  const randomCell = document.querySelector(`.cell-${randRow}-${randCol} img`)
+
+  if(randomCell.querySelector('.revealed')) return
+
+  randomCell.classList.remove('hidden')
+  randomCell.classList.add('revealed')
+    setTimeout(() => {
+  randomCell.classList.remove('revealed')
+  randomCell.classList.add('hidden')
+    }, 1500)
+
+gSafe--
+console.log(elSafe)
+if (gSafe>1){
+  elSafe.querySelector('p').innerText = `${gSafe} clicks available`
+} else if (gSafe === 1){
+  elSafe.querySelector('p').innerText = `${gSafe} click available`
+} else if (gSafe === 0){
+  elSafe.querySelector('p').innerText = `no clicks available`
+}
+}
+
+
 function onCellMarked(event, elCell) {
   elCell.addEventListener('contextmenu', function (event) {
     event.preventDefault()
   })
 }
 
+// Best Score
+// Keep the best score in local storage (per level) and show it on
+// the page
+
+//Expand nebs
+
+// Dark Mode
+// The user should be able to toggle between Dark-Mode and Light-Mode 
+
+// Undo
+// Add an “UNDO” button, so the user can undo (some of) his moves
+
+// Manually positioned mines
+// Create a “manually create” mode in which the user first
+// positions the mines (by clicking cells) and then plays.
+
+// MEGA HINT
+// Mega-Hint works only once every game. It is used to reveal an
+// area of the board for 2 seconds. Functionality description: (1)
+// Click the “Mega Hint” button (2) then click the area’s top-left
+// cell (3) then click bottom-right cell. The whole area will be
+// revealed for 2 seconds. 
+
+// MINE EXTERMINATOR
+// Clicking the “Exterminator” button, eliminate 3 of the existing
+// mines, randomly. These mines will disappear from the board.
+// Re-calculation of neighbors-count is needed

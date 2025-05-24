@@ -1,79 +1,114 @@
 body{
   margin: 0 auto;
-     text-align: center;
-         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-         color: darkgoldenrod;
+  text-align: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: darkgoldenrod;
 }
 
-header{
-padding: 20px;
-    text-align: center;
+header {
+  padding: 20px;
+  text-align: center;
 }
 
-.timer{
-  margin-bottom: 10px;
+.header {
+  margin-bottom: 15px;
 }
 
-.level button{
-  padding: 5px;
+.timer,.smiley,.life {
+  display: inline-block;
+  margin: 0 10px;
+  vertical-align: middle;
+}
+
+.level {
+  margin: 10px 0;
+}
+
+.level button {
+  padding: 5px 10px;
   background-color: black;
-  color: rgb(226, 220, 220);
+  color: white;
+  margin: 0 5px;
+  border: none;
+  cursor: pointer;
+}
+
+.hints {
+  margin: 15px 0;
+}
+
+.hint {
+  width: 30px;
+  height: 30px;
+  margin: 0 5px;
+  cursor: pointer;
+}
+
+.safe {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #f4f4f4;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+
+.safe button{
+  background-color: white;
+  cursor: pointer;
+  color: rgb(51, 49, 49);
+  border:1px;
 }
 
 table{
-margin: auto;
-margin-bottom: 10%;
-/* padding: 10px; */
-text-align: center;
-font-size: 25px;
+  margin: auto;
+  margin-bottom: 10%;
+  text-align: center;
+  font-size: 25px;
 }
 
 td {
-    padding: 20px;
-    width: 20px;
-    height: 20px;
-       background-color: rgb(226, 220, 220);
-    color: black;
- text-align: center;
- /* align-items: center;  */
-  /* justify-content: center;   remove? */
+  padding: 20px;
+  width: 20px;
+  height: 20px;
+  background-color: rgb(226, 220, 220);
+  color: black;
+  text-align: center;
   display: flex;
- position:relative;
- display: inline-block;
- /* vertical-align: middle */
+  position:relative;
+  display: inline-block;
 }
 
 .hidden{
-     top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-position: absolute;
- z-index: 1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  z-index: 1;
 }
 
 .revealed {
-display: none;
-       background-color: white;
-    color: black;
-}
-
-.smiley {
-  margin-top: 20px;
+  display: none;
+  background-color: white;
+  color: black;
 }
 
 .flag{
-    display: none;
-    position: absolute;
+  display: none;
+  position: absolute;
   z-index: 2;
   text-align: center;
   margin: auto;
-    top: 50%;
+  top: 50%;
   left: 50%;
 }
 
 footer {
-      margin: 0 auto;
+  margin: 0 auto;
   bottom: 10;
   font-size: 15px;
 }
+
+

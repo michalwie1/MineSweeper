@@ -7,16 +7,33 @@
     <link rel="stylesheet" href="css/app.css">
 </head>
 <body onload="onInit()">
-    <header>
-        <div class="timer">0:00</div>
 
-        <div class="level">
-            <button onclick="onChangeLevel(this)">Beginner</button>
-            <button onclick="onChangeLevel(this)">Medium</button>
-            <button onclick="onChangeLevel(this)">Expert</button>
-        </div>
-                <div class="smiley" onclick="onSmileyClicked(this)">😀</div>
-    </header>
+<header>
+    <div class="header">
+        <h1>Minesweeper</h1>
+        <p class="life">3 LIVES LEFT</p>
+        <div class="smiley" onclick="onSmileyClicked(this)">😀</div>
+         <div class="timer">0:00</div>
+    </div>
+
+    <div class="level">
+        <button onclick="onChangeLevel(this)">Beginner</button>
+        <button onclick="onChangeLevel(this)">Medium</button>
+        <button onclick="onChangeLevel(this)">Expert</button>
+    </div>
+
+    <div class="hints">
+        <img onclick="onHintClicked(this)" class="hint" src="img/black-lamp.png" alt="Hint">
+        <img onclick="onHintClicked(this)" class="hint" src="img/black-lamp.png" alt="Hint">
+        <img onclick="onHintClicked(this)" class="hint" src="img/black-lamp.png" alt="Hint">
+    </div>
+
+    <div class="safe" onclick="onSafeClicked(this)">
+        <button>Safe Click</button>
+        <p>3 clicks available</p>
+    </div>
+</header>
+
     <table>
           <tbody class="board"></tbody>
     </table>

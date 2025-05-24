@@ -1,5 +1,3 @@
-
-
 function renderBoard(board, cellPosStarted) {
   var strHTML = ''
   for (var i = 0; i < board.length; i++) {
@@ -89,7 +87,7 @@ function onChangeLevel(elBtn) {
 function returnCellPos(cellClass) {
   //cell-0-0
   var classArr = cellClass.split('-')
-  return (cellPos = { i: classArr[1], j: classArr[2] })
+  return (cellPos = { i: Number(classArr[1]), j: Number(classArr[2]) })
 }
 
 function getRandomInt(min, max) {
