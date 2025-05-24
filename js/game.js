@@ -48,7 +48,7 @@ function onInit() {
   elSafe.innerText = `${gSafe} clicks available`
 
   const elLife = document.querySelector('.life')
-  elLife.innerText = `${gLive} clicks available`
+  elLife.innerText = `${gLive} LIVES LEFT`
 }
 
 function buildBoard() {
